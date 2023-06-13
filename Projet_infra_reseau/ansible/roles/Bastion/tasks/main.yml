@@ -1,0 +1,48 @@
+- name: Update system
+  dnf:
+    name: "*"
+    state: latest
+    exclude: kernel*
+  register: dnf_update_output
+
+- name: Install auditd
+  dnf:
+    name: audit
+    state: present
+
+- name: Configure auditd.conf
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^max_log_file", line: "max_log_file = 100" }
+    - { regexp: "^max_log_file_action", line: "max_log_file_action = rotate" }
+    - { regexp: "^flush", line: "flush = incremental" }
+
+
+- name: Set permissions on audit log file
+  file:
+    path: /var/log/audit/audit.log
+    owner: root
+    group: root
+    mode: "0400"
+
+- name: Restart auditd service
+  service:
+    name: auditd
+    state: restarted
+    use: service
+
+- name: Upload Bastion.conf
+  copy:
+      src: files/Bastion.conf
+      dest: /etc/ssh/ssh_config.d/Bastion.conf
+      owner: root
+      group: root
+      mode: '0644'
+
+- name: Reload sshd service
+  service:
+    name: sshd
+    state: reloaded

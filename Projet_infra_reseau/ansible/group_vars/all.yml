@@ -1,0 +1,8 @@
+Domainname: "eole.ovh"
+
+IPs:
+  - { name: 'Bastion', ip: '10.1.0.4'}
+  - { name: 'DataBase', ip: '10.1.0.200'}
+  - { name: 'ReverseProxy', ip: '10.1.0.3'}
+  - { name: 'WebServer', ip: '10.1.0.10'}
+  - { name: 'Routeur', ip: '10.1.0.254'}

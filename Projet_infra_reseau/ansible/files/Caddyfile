@@ -1,0 +1,3 @@
+DomainName {
+        reverse_proxy IP:80
+}

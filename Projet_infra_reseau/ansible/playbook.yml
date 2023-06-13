@@ -1,0 +1,32 @@
+- name: Setup Router / Firewall
+  hosts: Routeur
+  become: True
+  roles:
+    - Routeur
+
+- name: Setup Bastion
+  hosts: Bastion
+  become: True
+  roles:
+    - Bastion
+
+- name: Setup ReverseProxy
+  hosts: reverseproxies
+  become: True
+  roles:
+    - ReverseProxy
+
+- name: Setup Database
+  hosts: dbservers
+  become: True
+  roles:
+    - DataBase
+
+- name: Setup WebServer
+  hosts: webservers
+  become: True
+  roles:
+    - WebServer
+
+
+

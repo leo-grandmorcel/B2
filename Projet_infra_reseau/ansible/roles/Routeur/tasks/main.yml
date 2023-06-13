@@ -1,0 +1,36 @@
+- name: "Create Aliases"
+  pfsensible.core.pfsense_alias:
+    address: "{{ item.ip }}"
+    name: "{{ item.name }}"
+    type: host
+  loop: "{{ IPs }}"
+
+- name: "Create Nat Port Forward 80"
+  pfsensible.core.pfsense_nat_port_forward:
+    descr: "HTTP"
+    interface: "wan"
+    source: "any"
+    destination: "any:80"
+    target: "ReverseProxy:80"
+    protocol: "tcp"
+    associated_rule: "pass"
+
+- name: "Create Nat Port Forward 443"
+  pfsensible.core.pfsense_nat_port_forward:
+    descr: "HTTPS"
+    interface: "wan"
+    source: "any"
+    destination: "any:443"
+    target: "ReverseProxy:443"
+    protocol: "tcp"
+    associated_rule: "pass"
+    
+- name: "Create Nat Port Forward 22"
+  pfsensible.core.pfsense_nat_port_forward:
+    descr: "SSH"
+    interface: "wan"
+    source: "any"
+    destination: "any:22"
+    target: "Bastion:22"
+    protocol: "tcp"
+    associated_rule: "pass"

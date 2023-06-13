@@ -1,0 +1,59 @@
+- name: Install rocky copr plugin (dnf)
+  package:
+    name: dnf-command(copr)
+    state: present
+
+- name: Enable caddy repo
+  shell: dnf copr enable -y @caddy/caddy
+
+- name: Install Caddy
+  dnf:
+    name: caddy
+    state: present
+
+- name: Enable Caddy
+  systemd:
+    name: caddy
+    enabled: yes
+
+- name: Copy conf to CaddyFile
+  copy:
+    src: files/Caddyfile
+    dest: /etc/caddy/Caddyfile
+    owner: caddy
+    group: caddy
+    mode: '0644'
+
+- name: Configure CaddyFile part 1
+  replace:
+    path: /etc/caddy/Caddyfile
+    regexp: 'DomainName'
+    replace: "{{ Domainname }}"
+
+- name: Configure CaddyFile part 2
+  replace:
+    path: /etc/caddy/Caddyfile
+    regexp: 'IP'
+    replace: "{{ IPs[3].ip }}"
+
+- name: Reload Caddy
+  service:
+    name: caddy
+    state: reloaded
+
+- name: open 80/tcp
+  firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+
+- name: open 443/tcp
+  firewalld:
+    port: 443/tcp
+    permanent: true
+    state: enabled
+    
+- name: reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded

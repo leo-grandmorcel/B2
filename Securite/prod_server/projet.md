@@ -1,0 +1,5 @@
+- Pourquoi cette vuln
+- Démonstration de vuln
+- Explication de la vuln
+- Explication du patch possible de la vuln
+- Exemples de cette vuln dans la vrai vie

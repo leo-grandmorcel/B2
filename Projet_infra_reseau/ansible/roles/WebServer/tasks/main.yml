@@ -1,0 +1,99 @@
+- name: Enable CRB
+  shell: dnf config-manager --set-enabled crb
+
+- name : Install packages
+  shell : dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm
+
+- name: Enable PHP 8.1
+  shell: dnf module enable php:remi-8.1 -y
+
+- name: Install dependencies
+  dnf:
+    name:
+      - httpd
+      - mysql
+      - python3-firewall
+      - zip
+      - unzip
+      - php81-php
+      - php81-php-common
+      - php81-php-pecl-zip
+      - php81-php-gd
+      - php81-php-pecl-quickhash
+      - php81-php-pecl-scrypt
+      - php81-php-pecl-simdjson
+      - php81-php-pecl-json-post
+      - php81-php-pecl-jsonpath
+      - libxml2
+      - php81-php-mbstring
+      - openssl
+      - php81-php-openssl
+      - php81-php-xml
+      - php81-php-posix
+      - php81-php-session
+      - php81-php-zlib
+      - php81-php-mysqlnd
+      - php81-php-intl
+      - php81-php-ldap
+      - php81-php-smbclient
+      - php81-php-imap
+      - php81-php-bcmath
+      - php81-php-gmp
+      - php81-php-pecl-apcu
+
+- name: Copy conf Apache
+  copy:
+    src: files/Nextcloud.conf
+    dest: /etc/httpd/conf.d/nextcloud.conf
+    owner: apache
+    group: apache
+    mode: '0644'
+
+
+- name: Download nextcloud
+  ansible.builtin.get_url:
+    url: https://download.nextcloud.com/server/releases/nextcloud-24.0.11.zip
+    dest: /tmp/nextcloud.zip
+    mode: '0644'
+
+- name: Unarchive nextcloud
+  unarchive:
+    src: /tmp/nextcloud.zip
+    dest: /var/www/
+    remote_src: yes
+
+- name: Change ownership of nextcloud
+  file:
+    path: /var/www/nextcloud
+    state: directory
+    recurse: yes
+    owner: apache
+    group: apache
+    mode: '0755'
+
+- name: restart apache
+  service:
+    name: httpd
+    state: restarted
+
+- name: open 80/tcp
+  firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+
+- name: reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Configure Nextcloud and default user
+  shell: sudo -u apache /opt/remi/php81/root/bin/php /var/www/nextcloud/occ  maintenance:install --database-host='{{ IPs[1].ip }}' --database-name='nextcloud' --database-user='nextcloud' --database-pass='azerty' --admin-user='admin' --admin-pass='azerty'
+
+- name: Change config Nextcloud
+  copy:
+    src: files/config.php
+    dest: /var/www/nextcloud/config/config.php
+    owner: apache
+    group: apache
+    mode: '0755'

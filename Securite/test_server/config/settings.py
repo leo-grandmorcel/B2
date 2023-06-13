@@ -1,0 +1,4 @@
+HOST = "192.168.56.102"
+PORT = 8080
+DEBUG = True
+ALLOWED_EXTS = ["zip", "apk"]

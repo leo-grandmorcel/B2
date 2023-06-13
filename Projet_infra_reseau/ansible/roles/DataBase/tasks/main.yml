@@ -1,0 +1,64 @@
+- name: Install mariadb
+  dnf:
+    name: 
+    - mariadb-server
+    - python3-PyMySQL.noarch
+    - python3-pexpect.noarch
+    - python3-firewall
+    state: present
+
+- name: start mariadb
+  service:
+    name: mariadb
+    state: started
+  
+- name: Enable mariadb
+  systemd:
+    name: mariadb
+    enabled: True
+
+- name: secure mariadb
+  expect:
+    command: mysql_secure_installation
+    responses:
+      'Enter current password for root': ''
+      'Switch to unix_socket authentication': 'n'
+      'Change the root password?': 'y'
+      'New password': "{{ RootPassword }}"
+      'Re-enter new password': "{{ RootPassword }}"
+      'Remove anonymous users': 'y'
+      'Disallow root login remotely?': 'y'
+      'Remove test database and access to it?': 'y'
+      'Reload privilege tables now?': 'y'
+    timeout: 1
+  register: secure_mariadb
+  failed_when: "'... Failed!' in secure_mariadb.stdout_lines"
+
+
+- name: create nextcloud database
+  mysql_db:
+    login_user: root
+    login_password: "{{ RootPassword }}"
+    name: nextcloud
+    state: present
+      
+- name: Create user with permissions to nextcloud databases
+  mysql_user:
+    login_user: root
+    login_password: "{{ RootPassword }}"
+    name: "nextcloud"
+    password: "{{ UserPassword }}"
+    state: present
+    host: "{{ IPs[3].ip }}"
+    priv: "nextcloud.*:ALL"
+
+- name: open 3306/tcp
+  firewalld:
+    port: 3306/tcp
+    permanent: true
+    state: enabled
+
+- name: reload service firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
