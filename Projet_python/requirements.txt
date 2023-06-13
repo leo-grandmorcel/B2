@@ -1,0 +1,4 @@
+Pygame
+Noise
+SQLITE3
+pygame_gui
